@@ -1,4 +1,10 @@
 # pylint: disable=line-too-long
+"""
+MixVideoConcat Module
+
+This module provides functions for manipulating and concatenating video files.
+"""
+
 import os
 import logging
 import subprocess
@@ -17,6 +23,9 @@ def __unlink(filename):
 
 
 def get_video_info(filename):
+    """
+    Retrieve information about a video file.
+    """
     command = [
         'ffprobe',
         '-v',
@@ -64,6 +73,9 @@ def get_video_info(filename):
 
 
 def apply_video_filters(in_file, out_file, filters, add_params=None):
+    """
+    Apply filters to a video file.
+    """
     cmd = [FFMPEG_BINARY, "-y"]  # overwrite existing
     cmd += ("-i", in_file)  # input file
     cmd += ("-vf", ",".join(filters))  # filters
@@ -84,6 +96,9 @@ def apply_video_filters(in_file, out_file, filters, add_params=None):
 
 
 def deinterlace(in_file, out_file):
+    """
+    Deinterlace a video file.
+    """
     filters = [
         "yadif",
         "format=yuv420p",
@@ -93,6 +108,9 @@ def deinterlace(in_file, out_file):
 
 
 def stabilize(in_file, out_file, tmpdirname):
+    """
+    Stabilize a video file.
+    """
     trffile = os.path.join(tmpdirname, 'transforms.txt')
     try:
         filters = [
@@ -111,6 +129,9 @@ def stabilize(in_file, out_file, tmpdirname):
 
 
 def resize_and_resample(in_file, out_file, w, h):
+    """
+    Resize and resample a video file.
+    """
     filters = [
         "format=yuv420p",
         f"scale=w='if(gt(a,{w}/{h}),{w},trunc(oh*a/2)*2)':h='if(gt(a,{w}/{h}),trunc(ow/a/2)*2,{h})'",  # noqa
@@ -122,6 +143,9 @@ def resize_and_resample(in_file, out_file, w, h):
 
 
 def concat_uniform(filenames, out_file, tmpdirname):
+    """
+    Concatenate video files with uniform properties into a single video file.
+    """
     if len(filenames) == 0:
         logging.warning("empty filenames list")
         return
@@ -179,6 +203,19 @@ def __get_info_and_size(filenames):
 
 
 def concat(filenames, outputfile, tmpdirname="/tmp", dry_run=False):
+    """
+    Concatenate video files into a single video file.
+
+    Args:
+        filenames (list of str): List of paths to the input video files.
+        outputfile (str): Path to the output concatenated video file.
+        tmpdirname (str, optional): Directory for temporary files. Defaults to "/tmp".
+        dry_run (bool, optional): If True, performs a dry run without actually
+            concatenating the videos. Defaults to False.
+
+    Returns:
+        list: Information about the concatenated video files.
+    """
     fileinfos, max_width, max_height = __get_info_and_size(filenames)
 
     if dry_run:

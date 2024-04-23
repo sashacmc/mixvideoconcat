@@ -1,6 +1,18 @@
 #!/usr/bin/python3
 # pylint: disable=broad-exception-caught
 
+"""
+MixVideoConcat Script
+
+This script provides a command-line interface for concatenating video files into
+a single video file.
+
+Example:
+    Concatenate video files 'video1.mp4', 'video2.mov', 'video3.avi'
+    into a single video file 'output.mp4':
+    $ mixvideoconcat video1.mp4 video2.mov video3.avi output.mp4
+"""
+
 import os
 import sys
 import logging
@@ -28,6 +40,9 @@ def __args_parse():
 
 
 def main():
+    """
+    Main function for executing the concatenation process.
+    """
     args = __args_parse()
     init_logger(args.logfile, logging.DEBUG)
 
