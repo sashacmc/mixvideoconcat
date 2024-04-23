@@ -1,2 +1,52 @@
-# mixvideoconcat
-Mixed Videos Concatenator based on ffmpeg
+# MixVideoConcat
+
+MixVideoConcat is a Python tool/library based on ffmpeg for concatenating video files of different formats, resolutions, and orientations into a single video file. It supports various input formats and ensures seamless merging of videos while handling differences in resolution and orientation.
+
+## Installation
+
+You can install MixVideoConcat via pip:
+
+```bash
+pip install mixvideoconcat
+```
+
+## Command line tool usage
+
+```bash
+mixvideoconcat [-h] [-t TMPDIR] [-l LOGFILE] [-f] sources [sources ...] destination
+
+positional arguments:
+  sources               Source files
+  destination           Destination file
+
+options:
+  -h, --help            show this help message and exit
+  -t TMPDIR, --tmpdir TMPDIR
+                        Directory for temprary files (they can be huge!)
+  -l LOGFILE, --logfile LOGFILE
+                        Log file
+  -f, --force           Overwrite existing
+```
+
+## Example
+
+Concatenate three video files (video1.mp4, video2.mov, video3.avi) into a single video file named output.mp4:
+
+```bash
+mixvideoconcat video1.mp4 video2.mov video3.avi output.mp4
+```
+
+## Library usage
+
+```python
+from mixvideoconcat import concat
+
+concat(['video1.mp4', 'video2.mov', 'video3.avi'], 'output.mp4')
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.
+
+## Show your support
+Give a ⭐️ if this project helped you!

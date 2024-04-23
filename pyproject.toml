@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mixvideoconcat"
+version = "1.0.0"
+description = "Mixed videos concatenator"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE.txt"}
+keywords = ["video", "concatenate", "tool", "ffmpeg"]
+
+authors = [
+	{ name = "Alexander Bushnev", email = "Alexander@Bushnev.pro" }
+]
+
+maintainers = [
+	{ name = "Alexander Bushnev", email = "Alexander@Bushnev.pro" }
+]
+
+classifiers = [
+	#   3 - Alpha
+  	#   4 - Beta
+  	#   5 - Production/Stable
+  	"Development Status :: 4 - Beta",
+
+	"Operating System :: POSIX :: Linux",
+	"Operating System :: MacOS",
+	"Programming Language :: Python",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3.6",
+	"Programming Language :: Python :: 3.7",
+	"Programming Language :: Python :: 3.8",
+	"Programming Language :: Python :: 3.9",
+	"Programming Language :: Python :: 3.10",
+	"Programming Language :: Python :: 3.11",
+	"License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+	"Topic :: Multimedia :: Video",
+	"Topic :: Utilities",
+]
+
+dependencies = [
+]
+
+[project.urls]
+"Homepage" = "https://github.com/sashacmc/mixvideoconcat"
+"Bug Reports" = "https://github.com/sashacmc/mixvideoconcat/issues"
+"Source" = "https://github.com/sashacmc/mixvideoconcat/"
+
+[project.scripts]
+mixvideoconcat = "mixvideoconcat:main"
