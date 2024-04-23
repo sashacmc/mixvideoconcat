@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# pylint: disable=broad-exception-caught
 
 import os
 import sys
@@ -7,7 +8,7 @@ import argparse
 import tempfile
 
 from .concat import *
-from .log import initLogger
+from .log import init_logger
 
 
 def __args_parse():
@@ -28,7 +29,7 @@ def __args_parse():
 
 def main():
     args = __args_parse()
-    initLogger(args.logfile, logging.DEBUG)
+    init_logger(args.logfile, logging.DEBUG)
 
     if os.path.exists(args.destination) and not args.force:
         print(f"{args.destination} already exists")

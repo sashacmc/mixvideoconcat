@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long
 import os
 import logging
 import subprocess
@@ -12,7 +13,7 @@ def __unlink(filename):
     try:
         os.unlink(filename)
     except FileNotFoundError:
-        logging.exeption("unlink failed")
+        logging.exception("unlink failed")
 
 
 def get_video_info(filename):
@@ -27,11 +28,11 @@ def get_video_info(filename):
         filename,
     ]
     result = subprocess.run(
-        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False
     )
     if result.returncode != 0:
         error_msg = result.stderr.decode('utf-8').strip()
-        raise Exception(error_msg)
+        raise SystemError(error_msg)
 
     output = result.stdout.decode('utf-8')
     data = json.loads(output)
@@ -45,7 +46,7 @@ def get_video_info(filename):
         None,
     )
     if video_stream is None:
-        raise Exception("File has no video steam")
+        raise RuntimeWarning("File has no video steam")
 
     info = {
         "width": int(video_stream.get('width', 0)),
@@ -58,11 +59,11 @@ def get_video_info(filename):
             video_stream.get('field_order', 'unknown') != "progressive"
         ),
     }
-    logging.info(f"{filename}: {info}")
+    logging.info("%s: %s", filename, info)
     return info
 
 
-def apply_video_filters(in_file, out_file, filters, add_params=[]):
+def apply_video_filters(in_file, out_file, filters, add_params=None):
     cmd = [FFMPEG_BINARY, "-y"]  # overwrite existing
     cmd += ("-i", in_file)  # input file
     cmd += ("-vf", ",".join(filters))  # filters
@@ -73,12 +74,13 @@ def apply_video_filters(in_file, out_file, filters, add_params=[]):
         cmd += ("-preset", "ultrafast")  # maimum speed, big file
         cmd += ("-acodec", "copy")  # copy audio as is
         cmd += ("-c:v", FFMPEG_CODEC)  # video codec
-        cmd += add_params
+        if add_params is not None:
+            cmd += add_params
         cmd += (out_file,)
     logging.debug(cmd)
-    res = subprocess.run(cmd).returncode
+    res = subprocess.run(cmd, check=False).returncode
     if res != 0:
-        raise Exception(f"apply_video_filters failed: {res}")
+        raise SystemError(f"apply_video_filters failed: {res}")
 
 
 def deinterlace(in_file, out_file):
@@ -124,7 +126,7 @@ def concat_uniform(filenames, out_file, tmpdirname):
         logging.warning("empty filenames list")
         return
     listfile = os.path.join(tmpdirname, 'list.txt')
-    with open(listfile, 'w') as f:
+    with open(listfile, "w", encoding="utf-8") as f:
         for fname in filenames:
             f.write(f"file '{fname}'\n")
 
@@ -147,15 +149,15 @@ def concat_uniform(filenames, out_file, tmpdirname):
     logging.info("start concatenate")
     logging.debug(cmd)
     try:
-        res = subprocess.run(cmd).returncode
+        res = subprocess.run(cmd, check=False).returncode
         if res != 0:
-            raise Exception(f"concatenate failed: {res}")
-        logging.info(f"file saved: {out_file}")
+            raise SystemError(f"concatenate failed: {res}")
+        logging.info("file saved: %s", out_file)
     finally:
         __unlink(listfile)
 
 
-def concat(filenames, outputfile, tmpdirname="/tmp", dry_run=False):
+def __get_info_and_size(filenames):
     max_height = 0
     max_width = 0
     fileinfos = []
@@ -171,7 +173,13 @@ def concat(filenames, outputfile, tmpdirname="/tmp", dry_run=False):
         info["name"] = f
         fileinfos.append(info)
 
-    logging.info(f"Result video: width={max_width}, height={max_height}")
+    logging.info("Result video: width=%s, height=%s", max_width, max_height)
+
+    return fileinfos, max_width, max_height
+
+
+def concat(filenames, outputfile, tmpdirname="/tmp", dry_run=False):
+    fileinfos, max_width, max_height = __get_info_and_size(filenames)
 
     if dry_run:
         return fileinfos
@@ -182,10 +190,10 @@ def concat(filenames, outputfile, tmpdirname="/tmp", dry_run=False):
         for i, finfo in enumerate(fileinfos):
             fname = os.path.join(tmpdirname, f"{i}.mp4")
             tfname = os.path.join(tmpdirname, f"{i}_tmp.mp4")
-
-            logging.info(f"convert '{f}' to '{fname}'")
-
             src_name = finfo["name"]
+
+            logging.info("convert '%s' to '%s'", src_name, fname)
+
             if finfo["interlaced"]:
                 deinterlace(src_name, tfname)
                 os.rename(tfname, fname)
