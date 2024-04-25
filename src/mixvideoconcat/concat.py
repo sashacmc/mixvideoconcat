@@ -72,7 +72,9 @@ def get_video_info(filename):
     return info
 
 
-def apply_video_filters(in_file, out_file, filters, add_params=None):
+def apply_video_filters(
+    in_file, out_file, filters, add_params=None, verbose=False
+):
     """
     Apply filters to a video file.
     """
@@ -90,12 +92,15 @@ def apply_video_filters(in_file, out_file, filters, add_params=None):
             cmd += add_params
         cmd += (out_file,)
     logging.debug(cmd)
-    res = subprocess.run(cmd, check=False).returncode
-    if res != 0:
-        raise SystemError(f"apply_video_filters failed: {res}")
+    errout = None if verbose else subprocess.PIPE
+    result = subprocess.run(cmd, stderr=errout, check=False)
+    if result.returncode != 0:
+        if not verbose:
+            logging.error(result.stderr.decode('utf-8'))
+        raise SystemError(f"apply_video_filters failed: {result.returncode}")
 
 
-def deinterlace(in_file, out_file):
+def deinterlace(in_file, out_file, verbose):
     """
     Deinterlace a video file.
     """
@@ -104,10 +109,10 @@ def deinterlace(in_file, out_file):
         "format=yuv420p",
     ]
     logging.info("start deinterlace")
-    apply_video_filters(in_file, out_file, filters)
+    apply_video_filters(in_file, out_file, filters, verbose)
 
 
-def stabilize(in_file, out_file, tmpdirname):
+def stabilize(in_file, out_file, tmpdirname, verbose):
     """
     Stabilize a video file.
     """
@@ -117,18 +122,18 @@ def stabilize(in_file, out_file, tmpdirname):
             f"vidstabdetect=stepsize=32:shakiness=10:accuracy=10:result={trffile}",  # noqa
         ]
         logging.info("start stab prep")
-        apply_video_filters(in_file, None, filters)
+        apply_video_filters(in_file, None, filters, None, verbose)
 
         filters = [
             f"vidstabtransform=input={trffile}:zoom=0:smoothing=10,unsharp=5:5:0.8:3:3:0.4",  # noqa
         ]
         logging.info("start stab")
-        apply_video_filters(in_file, out_file, filters)
+        apply_video_filters(in_file, out_file, filters, None, verbose)
     finally:
         __unlink(trffile)
 
 
-def resize_and_resample(in_file, out_file, w, h):
+def resize_and_resample(in_file, out_file, w, h, verbose):
     """
     Resize and resample a video file.
     """
@@ -139,10 +144,10 @@ def resize_and_resample(in_file, out_file, w, h):
     ]
     add_params = ["-r", REENCODE_FPS]
     logging.info("start resize")
-    apply_video_filters(in_file, out_file, filters, add_params)
+    apply_video_filters(in_file, out_file, filters, add_params, verbose)
 
 
-def concat_uniform(filenames, out_file, tmpdirname):
+def concat_uniform(filenames, out_file, tmpdirname, verbose):
     """
     Concatenate video files with uniform properties into a single video file.
     """
@@ -173,9 +178,12 @@ def concat_uniform(filenames, out_file, tmpdirname):
     logging.info("start concatenate")
     logging.debug(cmd)
     try:
-        res = subprocess.run(cmd, check=False).returncode
-        if res != 0:
-            raise SystemError(f"concatenate failed: {res}")
+        errout = None if verbose else subprocess.PIPE
+        result = subprocess.run(cmd, stderr=errout, check=False)
+        if result.returncode != 0:
+            if not verbose:
+                logging.error(result.stderr.decode('utf-8'))
+            raise SystemError(f"concatenate failed: {result.returncode}")
         logging.info("file saved: %s", out_file)
     finally:
         __unlink(listfile)
@@ -202,7 +210,9 @@ def __get_info_and_size(filenames):
     return fileinfos, max_width, max_height
 
 
-def concat(filenames, outputfile, tmpdirname="/tmp", dry_run=False):
+def concat(
+    filenames, outputfile, tmpdirname="/tmp", dry_run=False, verbose=False
+):
     """
     Concatenate video files into a single video file.
 
@@ -232,19 +242,19 @@ def concat(filenames, outputfile, tmpdirname="/tmp", dry_run=False):
             logging.info("convert '%s' to '%s'", src_name, fname)
 
             if finfo["interlaced"]:
-                deinterlace(src_name, tfname)
+                deinterlace(src_name, tfname, verbose)
                 os.rename(tfname, fname)
                 src_name = fname
 
-            stabilize(src_name, tfname, tmpdirname)
+            stabilize(src_name, tfname, tmpdirname, verbose)
             os.rename(tfname, fname)
 
-            resize_and_resample(fname, tfname, max_width, max_height)
+            resize_and_resample(fname, tfname, max_width, max_height, verbose)
             os.rename(tfname, fname)
 
             tmpfilenames.append(fname)
 
-        concat_uniform(tmpfilenames, outputfile, tmpdirname)
+        concat_uniform(tmpfilenames, outputfile, tmpdirname, verbose)
 
     finally:
         for f in tmpfilenames:

@@ -36,6 +36,12 @@ def __args_parse():
     parser.add_argument(
         '-f', '--force', help='Overwrite existing', action='store_true'
     )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        help='Print verbose information (ffmpeg output)',
+        action='store_true',
+    )
     return parser.parse_args()
 
 
@@ -52,10 +58,12 @@ def main():
 
     if args.tmpdir is None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            concat(args.sources, args.destination, tmpdir)
+            concat(args.sources, args.destination, tmpdir, False, args.verbose)
     else:
         os.makedirs(args.tmpdir, exist_ok=True)
-        concat(args.sources, args.destination, args.tmpdir)
+        concat(
+            args.sources, args.destination, args.tmpdir, False, args.verbose
+        )
 
     logging.info("Done.")
 

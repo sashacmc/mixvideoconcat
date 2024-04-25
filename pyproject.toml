@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Mixed videos concatenator"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {file = "LICENSE.txt"}
+license = {file = "LICENSE"}
 keywords = ["video", "concatenate", "tool", "ffmpeg"]
 
 authors = [
