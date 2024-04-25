@@ -109,7 +109,7 @@ def deinterlace(in_file, out_file, verbose):
         "format=yuv420p",
     ]
     logging.info("start deinterlace")
-    apply_video_filters(in_file, out_file, filters, verbose)
+    apply_video_filters(in_file, out_file, filters, None, verbose)
 
 
 def stabilize(in_file, out_file, tmpdirname, verbose):
