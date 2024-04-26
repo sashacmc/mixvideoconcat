@@ -86,7 +86,7 @@ def apply_video_filters(
     else:
         cmd += ("-qp", "0")  # lossless
         cmd += ("-preset", "ultrafast")  # maimum speed, big file
-        cmd += ("-acodec", "copy")  # copy audio as is
+        cmd += ("-c:a", "flac")  # copy audio as flac to keep quality
         cmd += ("-c:v", FFMPEG_CODEC)  # video codec
         if add_params is not None:
             cmd += add_params
