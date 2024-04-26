@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long,too-many-arguments,too-many-locals
 """
 MixVideoConcat Module
 
@@ -27,30 +27,30 @@ def get_video_info(filename):
     Retrieve information about a video file.
     """
     command = [
-        'ffprobe',
-        '-v',
-        'error',
-        '-show_format',
-        '-show_streams',
-        '-print_format',
-        'json',
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_format",
+        "-show_streams",
+        "-print_format",
+        "json",
         filename,
     ]
     result = subprocess.run(
         command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False
     )
     if result.returncode != 0:
-        error_msg = result.stderr.decode('utf-8').strip()
+        error_msg = result.stderr.decode("utf-8").strip()
         raise SystemError(error_msg)
 
-    output = result.stdout.decode('utf-8')
+    output = result.stdout.decode("utf-8")
     data = json.loads(output)
 
     video_stream = next(
         (
             stream
-            for stream in data['streams']
-            if stream['codec_type'] == 'video'
+            for stream in data["streams"]
+            if stream["codec_type"] == "video"
         ),
         None,
     )
@@ -58,14 +58,14 @@ def get_video_info(filename):
         raise RuntimeWarning("File has no video steam")
 
     info = {
-        "width": int(video_stream.get('width', 0)),
-        "height": int(video_stream.get('height', 0)),
-        "duration": float(data['format']['duration']),
+        "width": int(video_stream.get("width", 0)),
+        "height": int(video_stream.get("height", 0)),
+        "duration": float(data["format"]["duration"]),
         "orientation": int(
-            video_stream.get('side_data_list', [{}])[0].get('rotation', 0)
+            video_stream.get("side_data_list", [{}])[0].get("rotation", 0)
         ),
         "interlaced": (
-            video_stream.get('field_order', 'unknown') != "progressive"
+            video_stream.get("field_order", "unknown") != "progressive"
         ),
     }
     logging.info("%s: %s", filename, info)
@@ -96,7 +96,7 @@ def apply_video_filters(
     result = subprocess.run(cmd, stderr=errout, check=False)
     if result.returncode != 0:
         if not verbose:
-            logging.error(result.stderr.decode('utf-8'))
+            logging.error(result.stderr.decode("utf-8"))
         raise SystemError(f"apply_video_filters failed: {result.returncode}")
 
 
@@ -116,7 +116,7 @@ def stabilize(in_file, out_file, tmpdirname, verbose):
     """
     Stabilize a video file.
     """
-    trffile = os.path.join(tmpdirname, 'transforms.txt')
+    trffile = os.path.join(tmpdirname, "transforms.txt")
     try:
         filters = [
             f"vidstabdetect=stepsize=32:shakiness=10:accuracy=10:result={trffile}",  # noqa
@@ -154,7 +154,7 @@ def concat_uniform(filenames, out_file, tmpdirname, verbose):
     if len(filenames) == 0:
         logging.warning("empty filenames list")
         return
-    listfile = os.path.join(tmpdirname, 'list.txt')
+    listfile = os.path.join(tmpdirname, "list.txt")
     with open(listfile, "w", encoding="utf-8") as f:
         for fname in filenames:
             f.write(f"file '{fname}'\n")
@@ -182,7 +182,7 @@ def concat_uniform(filenames, out_file, tmpdirname, verbose):
         result = subprocess.run(cmd, stderr=errout, check=False)
         if result.returncode != 0:
             if not verbose:
-                logging.error(result.stderr.decode('utf-8'))
+                logging.error(result.stderr.decode("utf-8"))
             raise SystemError(f"concatenate failed: {result.returncode}")
         logging.info("file saved: %s", out_file)
     finally:
@@ -211,7 +211,13 @@ def __get_info_and_size(filenames):
 
 
 def concat(
-    filenames, outputfile, tmpdirname="/tmp", dry_run=False, verbose=False
+    filenames,
+    outputfile,
+    tmpdirname="/tmp",
+    deinterlace_mode=None,
+    stabilize_mode=True,
+    verbose=False,
+    dry_run=False,
 ):
     """
     Concatenate video files into a single video file.
@@ -220,6 +226,10 @@ def concat(
         filenames (list of str): List of paths to the input video files.
         outputfile (str): Path to the output concatenated video file.
         tmpdirname (str, optional): Directory for temporary files. Defaults to "/tmp".
+        deinterlace_mode (bool, optional): Enable video deinterlace,
+            if None interlacing will be detected by ffprobe.
+        stabilize_mode (bool, optional): Enable video stabilization.
+        verbose (bool, optional): Enable ffmpeg output.
         dry_run (bool, optional): If True, performs a dry run without actually
             concatenating the videos. Defaults to False.
 
@@ -241,15 +251,21 @@ def concat(
 
             logging.info("convert '%s' to '%s'", src_name, fname)
 
-            if finfo["interlaced"]:
+            if deinterlace_mode is None:
+                deinterlace_mode = finfo["interlaced"]
+            if deinterlace_mode:
                 deinterlace(src_name, tfname, verbose)
                 os.rename(tfname, fname)
                 src_name = fname
 
-            stabilize(src_name, tfname, tmpdirname, verbose)
-            os.rename(tfname, fname)
+            if stabilize_mode:
+                stabilize(src_name, tfname, tmpdirname, verbose)
+                os.rename(tfname, fname)
+                src_name = fname
 
-            resize_and_resample(fname, tfname, max_width, max_height, verbose)
+            resize_and_resample(
+                src_name, tfname, max_width, max_height, verbose
+            )
             os.rename(tfname, fname)
 
             tmpfilenames.append(fname)

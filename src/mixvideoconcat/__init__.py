@@ -8,8 +8,8 @@ This script provides a command-line interface for concatenating video files into
 a single video file.
 
 Example:
-    Concatenate video files 'video1.mp4', 'video2.mov', 'video3.avi'
-    into a single video file 'output.mp4':
+    Concatenate video files "video1.mp4", "video2.mov", "video3.avi"
+    into a single video file "output.mp4":
     $ mixvideoconcat video1.mp4 video2.mov video3.avi output.mp4
 """
 
@@ -23,6 +23,24 @@ from .concat import *
 from .log import init_logger
 
 
+def __deinterlace_mode(value):
+    if value == "on":
+        return True
+    if value == "off":
+        return False
+    if value == "auto":
+        return None
+    raise argparse.ArgumentTypeError(f"Invalid deinterlace mode: {value}")
+
+
+def __stabilize_mode(value):
+    if value == "on":
+        return True
+    if value == "off":
+        return False
+    raise argparse.ArgumentTypeError(f"Invalid stabilize mode: {value}")
+
+
 def __args_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument("sources", nargs="+", help="Source files")
@@ -32,17 +50,32 @@ def __args_parse():
         "--tmpdir",
         help="Directory for temprary files (they can be huge!)",
     )
-    parser.add_argument('-l', '--logfile', help='Log file', default=None)
+    parser.add_argument("-l", "--logfile", help="Log file", default=None)
     parser.add_argument(
-        '-f', '--force', help='Overwrite existing', action='store_true'
+        "-f", "--force", help="Overwrite existing", action="store_true"
     )
     parser.add_argument(
-        '-v',
-        '--verbose',
-        help='Print verbose information (ffmpeg output)',
-        action='store_true',
+        "--deinterlace",
+        help="Deinterlace mode (default: auto)",
+        choices=["on", "off", "auto"],
+        default="auto",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--stabilize",
+        help="Stabilize mode (default: on)",
+        choices=["on", "off"],
+        default="on",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="Print verbose information (ffmpeg output)",
+        action="store_true",
+    )
+    args = parser.parse_args()
+    args.deinterlace = __deinterlace_mode(args.deinterlace)
+    args.stabilize = __stabilize_mode(args.stabilize)
+    return args
 
 
 def main():
@@ -58,11 +91,25 @@ def main():
 
     if args.tmpdir is None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            concat(args.sources, args.destination, tmpdir, False, args.verbose)
+            concat(
+                args.sources,
+                args.destination,
+                tmpdir,
+                deinterlace_mode=args.deinterlace,
+                stabilize_mode=args.stabilize,
+                verbose=args.verbose,
+                dry_run=False,
+            )
     else:
         os.makedirs(args.tmpdir, exist_ok=True)
         concat(
-            args.sources, args.destination, args.tmpdir, False, args.verbose
+            args.sources,
+            args.destination,
+            args.tmpdir,
+            deinterlace_mode=args.deinterlace,
+            stabilize_mode=args.stabilize,
+            verbose=args.verbose,
+            dry_run=False,
         )
 
     logging.info("Done.")
