@@ -47,6 +47,7 @@ dependencies = [
 "Homepage" = "https://github.com/sashacmc/mixvideoconcat"
 "Bug Reports" = "https://github.com/sashacmc/mixvideoconcat/issues"
 "Source" = "https://github.com/sashacmc/mixvideoconcat/"
+"Changelog" = "https://github.com/sashacmc/mixvideoconcat/blob/master/CHANGELOG.md"
 
 [project.scripts]
 mixvideoconcat = "mixvideoconcat:main"
