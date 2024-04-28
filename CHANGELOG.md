@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.1.0] - 2024-04-28
 
 - Add possibility to disable ffmpeg output.
 - Add possibility to turn off deinterlace and/or stabilization.
