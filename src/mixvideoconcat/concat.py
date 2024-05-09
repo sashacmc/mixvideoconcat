@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long,too-many-arguments,too-many-locals
+# pylint: disable=line-too-long,too-many-arguments,too-many-locals,eval-used
 """
 MixVideoConcat Module
 
@@ -36,9 +36,7 @@ def get_video_info(filename):
         "json",
         filename,
     ]
-    result = subprocess.run(
-        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False
-    )
+    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
     if result.returncode != 0:
         error_msg = result.stderr.decode("utf-8").strip()
         raise SystemError(error_msg)
@@ -47,11 +45,7 @@ def get_video_info(filename):
     data = json.loads(output)
 
     video_stream = next(
-        (
-            stream
-            for stream in data["streams"]
-            if stream["codec_type"] == "video"
-        ),
+        (stream for stream in data["streams"] if stream["codec_type"] == "video"),
         None,
     )
     if video_stream is None:
@@ -60,21 +54,16 @@ def get_video_info(filename):
     info = {
         "width": int(video_stream.get("width", 0)),
         "height": int(video_stream.get("height", 0)),
+        "frame_rate": video_stream.get("r_frame_rate", 0),
         "duration": float(data["format"]["duration"]),
-        "orientation": int(
-            video_stream.get("side_data_list", [{}])[0].get("rotation", 0)
-        ),
-        "interlaced": (
-            video_stream.get("field_order", "unknown") != "progressive"
-        ),
+        "orientation": int(video_stream.get("side_data_list", [{}])[0].get("rotation", 0)),
+        "interlaced": (video_stream.get("field_order", "unknown") != "progressive"),
     }
     logging.info("%s: %s", filename, info)
     return info
 
 
-def apply_video_filters(
-    in_file, out_file, filters, add_params=None, verbose=False
-):
+def apply_video_filters(in_file, out_file, filters, add_params=None, verbose=False):
     """
     Apply filters to a video file.
     """
@@ -133,16 +122,18 @@ def stabilize(in_file, out_file, tmpdirname, verbose):
         __unlink(trffile)
 
 
-def resize_and_resample(in_file, out_file, w, h, verbose):
+def resize_and_resample(in_file, out_file, w, h, frame_rate, verbose):
     """
     Resize and resample a video file.
     """
+    if not frame_rate:
+        frame_rate = REENCODE_FPS
     filters = [
         "format=yuv420p",
         f"scale=w='if(gt(a,{w}/{h}),{w},trunc(oh*a/2)*2)':h='if(gt(a,{w}/{h}),trunc(ow/a/2)*2,{h})'",  # noqa
         f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:black",
     ]
-    add_params = ["-r", REENCODE_FPS]
+    add_params = ["-r", frame_rate]
     logging.info("start resize")
     apply_video_filters(in_file, out_file, filters, add_params, verbose)
 
@@ -192,6 +183,8 @@ def concat_uniform(filenames, out_file, tmpdirname, verbose):
 def __get_info_and_size(filenames):
     max_height = 0
     max_width = 0
+    max_frame_rate = 0
+    max_frame_rate_str = ""
     fileinfos = []
     for f in filenames:
         info = get_video_info(f)
@@ -202,12 +195,16 @@ def __get_info_and_size(filenames):
         if w > max_width:
             max_width = w
             max_height = h
+        frame_rate = eval(info["frame_rate"])
+        if frame_rate > max_frame_rate:
+            max_frame_rate = frame_rate
+            max_frame_rate_str = info["frame_rate"]
         info["name"] = f
         fileinfos.append(info)
 
     logging.info("Result video: width=%s, height=%s", max_width, max_height)
 
-    return fileinfos, max_width, max_height
+    return fileinfos, max_width, max_height, max_frame_rate_str
 
 
 def concat(
@@ -236,7 +233,7 @@ def concat(
     Returns:
         list: Information about the concatenated video files.
     """
-    fileinfos, max_width, max_height = __get_info_and_size(filenames)
+    fileinfos, max_width, max_height, max_frame_rate_str = __get_info_and_size(filenames)
 
     if dry_run:
         return fileinfos
@@ -264,7 +261,7 @@ def concat(
                 src_name = fname
 
             resize_and_resample(
-                src_name, tfname, max_width, max_height, verbose
+                src_name, tfname, max_width, max_height, max_frame_rate_str, verbose
             )
             os.rename(tfname, fname)
 

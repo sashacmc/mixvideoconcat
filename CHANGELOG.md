@@ -1,5 +1,9 @@
 # Changelog
 
+## UNRELEASED
+
+- Add frame rate detection (convert to highest)
+
 ## [1.1.0] - 2024-04-28
 
 - Add possibility to disable ffmpeg output.
