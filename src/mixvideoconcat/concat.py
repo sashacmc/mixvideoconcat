@@ -10,9 +10,10 @@ import logging
 import subprocess
 import json
 
-FFMPEG_BINARY = "ffmpeg"
-FFMPEG_CODEC = "libx264"
-REENCODE_FPS = "25"
+FFMPEG_BINARY = os.getenv("FFMPEG_BINARY", "ffmpeg")
+FFMPEG_CODEC = os.getenv("FFMPEG_CODEC", "libx264")
+FFMPEG_CRF = os.getenv("FFMPEG_CRF", "18")  # visually lossless file (ffmpeg default: 23)
+REENCODE_FPS = os.getenv("REENCODE_FPS", "25")
 
 
 def __unlink(filename):
@@ -155,7 +156,7 @@ def concat_uniform(filenames, out_file, tmpdirname, verbose):
     cmd += ("-safe", "0")
     cmd += ("-i", listfile)
     cmd += ("-c:v", FFMPEG_CODEC)
-    cmd += ("-crf", "17")  # produce a visually lossless file.
+    cmd += ("-crf", FFMPEG_CRF)
     cmd += ("-bf", "2")  # limit consecutive B-frames to 2
     cmd += ("-use_editlist", "0")  # avoids writing edit lists
     # places moov atom/box at front of the output file.
