@@ -2,6 +2,8 @@
 
 ## UNRELEASED
 
+- Skip resize for uniform videos
+- Add possibility to override FFMPEG constants by means of env variables
 - Add frame rate detection (convert to highest)
 
 ## [1.1.0] - 2024-04-28
