@@ -207,6 +207,22 @@ def __get_info_and_size(filenames):
     return fileinfos, max_width, max_height, max_frame_rate_str
 
 
+def __check_is_uniform(fileinfos):
+    if len(fileinfos) == 0:
+        return True
+    finfo0 = fileinfos[0]
+    for finfo in fileinfos[1:]:
+        if (
+            finfo0["height"] != finfo["height"]
+            or finfo0["width"] != finfo["width"]
+            or finfo0["frame_rate"] != finfo["frame_rate"]
+            or finfo0["orientation"] != finfo["orientation"]
+            or finfo0["interlaced"] != finfo["interlaced"]
+        ):
+            return False
+    return True
+
+
 def concat(
     filenames,
     outputfile,
@@ -238,6 +254,8 @@ def concat(
     if dry_run:
         return fileinfos
 
+    resize = not __check_is_uniform(fileinfos)
+
     tmpfilenames = []
 
     try:
@@ -260,17 +278,20 @@ def concat(
                 os.rename(tfname, fname)
                 src_name = fname
 
-            resize_and_resample(
-                src_name, tfname, max_width, max_height, max_frame_rate_str, verbose
-            )
-            os.rename(tfname, fname)
+            if resize:
+                resize_and_resample(
+                    src_name, tfname, max_width, max_height, max_frame_rate_str, verbose
+                )
+                os.rename(tfname, fname)
+                src_name = fname
 
-            tmpfilenames.append(fname)
+            tmpfilenames.append(src_name)
 
         concat_uniform(tmpfilenames, outputfile, tmpdirname, verbose)
 
     finally:
         for f in tmpfilenames:
-            __unlink(f)
+            if os.path.split(f)[0] == tmpdirname:
+                __unlink(f)
 
     return fileinfos
