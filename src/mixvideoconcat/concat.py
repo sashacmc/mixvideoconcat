@@ -12,8 +12,8 @@ import json
 
 FFMPEG_BINARY = os.getenv("FFMPEG_BINARY", "ffmpeg")
 FFMPEG_CODEC = os.getenv("FFMPEG_CODEC", "libx264")
-FFMPEG_CRF = os.getenv("FFMPEG_CRF", "18")  # visually lossless file (ffmpeg default: 23)
-REENCODE_FPS = os.getenv("REENCODE_FPS", "25")
+FFMPEG_CRF = os.getenv("FFMPEG_CRF", "23")  # use 18 for visually lossless file (ffmpeg default: 23)
+FFMPEG_FR = os.getenv("FFMPEG_FR", "25")
 
 
 def __unlink(filename):
@@ -128,7 +128,7 @@ def resize_and_resample(in_file, out_file, w, h, frame_rate, verbose):
     Resize and resample a video file.
     """
     if not frame_rate:
-        frame_rate = REENCODE_FPS
+        frame_rate = FFMPEG_FR
     filters = [
         "format=yuv420p",
         f"scale=w='if(gt(a,{w}/{h}),{w},trunc(oh*a/2)*2)':h='if(gt(a,{w}/{h}),trunc(ow/a/2)*2,{h})'",  # noqa
