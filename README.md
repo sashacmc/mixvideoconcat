@@ -31,6 +31,10 @@ options:
   -l LOGFILE, --logfile LOGFILE
                         Log file
   -f, --force           Overwrite existing
+  --deinterlace {on,off,auto}
+                        Deinterlace mode (default: auto)
+  --stabilize {on,off}  Stabilize mode (default: on)
+  -v, --verbose         Print verbose information (ffmpeg output)
 ```
 
 ## Example
@@ -48,6 +52,12 @@ from mixvideoconcat import concat
 
 concat(['video1.mp4', 'video2.mov', 'video3.avi'], 'output.mp4')
 ```
+
+## Tune
+
+You can override the default constant rate factor (CRF) of 23 by setting the `FFMPEG_CRF` environment variable.
+The frame rate will be determined as the maximum frame rate among the source files.
+To override this, use the `FFMPEG_FR` environment variable.
 
 ## Contributing
 

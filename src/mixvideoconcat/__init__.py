@@ -6,11 +6,6 @@ MixVideoConcat Script
 
 This script provides a command-line interface for concatenating video files into
 a single video file.
-
-Example:
-    Concatenate video files "video1.mp4", "video2.mov", "video3.avi"
-    into a single video file "output.mp4":
-    $ mixvideoconcat video1.mp4 video2.mov video3.avi output.mp4
 """
 
 import os
@@ -21,6 +16,20 @@ import tempfile
 
 from .concat import *
 from .log import init_logger
+
+
+DESCRIPTION = """
+Concatenatenite video files into a single video file.
+
+Example:
+    Concatenate video files "video1.mp4", "video2.mov", "video3.avi"
+    into a single video file "output.mp4":
+    $ mixvideoconcat video1.mp4 video2.mov video3.avi output.mp4
+
+You can override the default constant rate factor (CRF) of 23 by setting the FFMPEG_CRF environment variable.
+The frame rate will be determined as the maximum frame rate among the source files.
+To override this, use the FFMPEG_FR environment variable.
+"""
 
 
 def __deinterlace_mode(value):
@@ -42,7 +51,9 @@ def __stabilize_mode(value):
 
 
 def __args_parse():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=DESCRIPTION, formatter_class=argparse.RawTextHelpFormatter
+    )
     parser.add_argument("sources", nargs="+", help="Source files")
     parser.add_argument("destination", help="Destination file")
     parser.add_argument(
@@ -51,9 +62,7 @@ def __args_parse():
         help="Directory for temprary files (they can be huge!)",
     )
     parser.add_argument("-l", "--logfile", help="Log file", default=None)
-    parser.add_argument(
-        "-f", "--force", help="Overwrite existing", action="store_true"
-    )
+    parser.add_argument("-f", "--force", help="Overwrite existing", action="store_true")
     parser.add_argument(
         "--deinterlace",
         help="Deinterlace mode (default: auto)",
