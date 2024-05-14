@@ -1,10 +1,11 @@
 # Changelog
 
-## UNRELEASED
+## [1.2.0] - 2024-05-14 
 
-- Skip resize for uniform videos
-- Add possibility to override FFMPEG constants by means of env variables
-- Add frame rate detection (convert to highest)
+- Skip resize for uniform videos.
+- Add frame rate detection (convert to highest).
+- Add possibility to override FFMPEG constants by means of environment variables.
+- Switch to default CRF 23 (can be overrided by `FFMPEG_CRF` environment variable).
 
 ## [1.1.0] - 2024-04-28
 
