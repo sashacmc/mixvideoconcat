@@ -1,5 +1,10 @@
 # Changelog
 
+## UNRELEASED
+
+- Add option to limit frame rate during autodetection
+- Improve ffmpeg version support
+
 ## [1.2.0] - 2024-05-14 
 
 - Skip resize for uniform videos.

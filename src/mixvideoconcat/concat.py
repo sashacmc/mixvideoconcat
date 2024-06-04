@@ -15,6 +15,9 @@ FFMPEG_CODEC = os.getenv("FFMPEG_CODEC", "libx264")
 FFMPEG_CRF = os.getenv("FFMPEG_CRF", "23")  # use 18 for visually lossless file (ffmpeg default: 23)
 FFMPEG_FR = os.getenv("FFMPEG_FR", "25")
 
+# maximum alowed frame rate during autodetection
+MIXVIDEOCONCAT_MAX_FR = int(os.getenv("MIXVIDEOCONCAT_MAX_FR", "60"))
+
 
 def __unlink(filename):
     try:
@@ -77,6 +80,7 @@ def apply_video_filters(in_file, out_file, filters, add_params=None, verbose=Fal
         cmd += ("-qp", "0")  # lossless
         cmd += ("-preset", "ultrafast")  # maimum speed, big file
         cmd += ("-c:a", "flac")  # copy audio as flac to keep quality
+        cmd += ("-strict", "experimental")  # for some ffmpeg version to use flac
         cmd += ("-c:v", FFMPEG_CODEC)  # video codec
         if add_params is not None:
             cmd += add_params
@@ -197,7 +201,7 @@ def __get_info_and_size(filenames):
             max_width = w
             max_height = h
         frame_rate = eval(info["frame_rate"])
-        if frame_rate > max_frame_rate:
+        if max_frame_rate < frame_rate <= MIXVIDEOCONCAT_MAX_FR:
             max_frame_rate = frame_rate
             max_frame_rate_str = info["frame_rate"]
         info["name"] = f
