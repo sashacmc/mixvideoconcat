@@ -4,6 +4,7 @@
 
 - Add option to limit frame rate during autodetection
 - Improve ffmpeg version support
+- Add prefer verical video option
 
 ## [1.2.0] - 2024-05-14 
 

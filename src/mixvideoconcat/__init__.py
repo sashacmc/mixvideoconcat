@@ -76,6 +76,11 @@ def __args_parse():
         default="on",
     )
     parser.add_argument(
+        "--prefer_vertical",
+        help="Generate vertical video if at least one input video is vertical",
+        action="store_true",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         help="Print verbose information (ffmpeg output)",
@@ -106,6 +111,7 @@ def main():
                 tmpdir,
                 deinterlace_mode=args.deinterlace,
                 stabilize_mode=args.stabilize,
+                prefer_vertical=args.prefer_vertical,
                 verbose=args.verbose,
                 dry_run=False,
             )
@@ -117,6 +123,7 @@ def main():
             args.tmpdir,
             deinterlace_mode=args.deinterlace,
             stabilize_mode=args.stabilize,
+            prefer_vertical=args.prefer_vertical,
             verbose=args.verbose,
             dry_run=False,
         )

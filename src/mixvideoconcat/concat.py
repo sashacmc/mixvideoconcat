@@ -185,9 +185,11 @@ def concat_uniform(filenames, out_file, tmpdirname, verbose):
         __unlink(listfile)
 
 
-def __get_info_and_size(filenames):
-    max_height = 0
-    max_width = 0
+def __get_info_and_size(filenames, prefer_vertical=False):
+    max_vertical_height = 0
+    max_vertical_width = 0
+    max_horisontal_height = 0
+    max_horisontal_width = 0
     max_frame_rate = 0
     max_frame_rate_str = ""
     fileinfos = []
@@ -197,15 +199,26 @@ def __get_info_and_size(filenames):
         h = info["height"]
         if info["orientation"] not in (0, 180, -180):
             w, h = h, w
-        if w > max_width:
-            max_width = w
-            max_height = h
+            if h > max_vertical_height:
+                max_vertical_height = h
+                max_vertical_width = w
+        else:
+            if w > max_horisontal_width:
+                max_horisontal_height = h
+                max_horisontal_width = w
+
         frame_rate = eval(info["frame_rate"])
         if max_frame_rate < frame_rate <= MIXVIDEOCONCAT_MAX_FR:
             max_frame_rate = frame_rate
             max_frame_rate_str = info["frame_rate"]
         info["name"] = f
         fileinfos.append(info)
+
+    max_height = max_horisontal_height
+    max_width = max_horisontal_width
+    if prefer_vertical and max_vertical_height != 0 or max_horisontal_height == 0:
+        max_height = max_vertical_height
+        max_width = max_vertical_width
 
     logging.info("Result video: width=%s, height=%s", max_width, max_height)
 
@@ -234,6 +247,7 @@ def concat(
     tmpdirname="/tmp",
     deinterlace_mode=None,
     stabilize_mode=True,
+    prefer_vertical=False,
     verbose=False,
     dry_run=False,
 ):
@@ -254,7 +268,9 @@ def concat(
     Returns:
         list: Information about the concatenated video files.
     """
-    fileinfos, max_width, max_height, max_frame_rate_str = __get_info_and_size(filenames)
+    fileinfos, max_width, max_height, max_frame_rate_str = __get_info_and_size(
+        filenames, prefer_vertical
+    )
 
     if dry_run:
         return fileinfos
