@@ -127,7 +127,7 @@ def stabilize(in_file, out_file, tmpdirname, verbose):
         __unlink(trffile)
 
 
-def resize_and_resample(in_file, out_file, w, h, frame_rate, verbose):
+def resize_and_resample(in_file, out_file, w, h, *, frame_rate, verbose):
     """
     Resize and resample a video file.
     """
@@ -245,6 +245,7 @@ def concat(
     filenames,
     outputfile,
     tmpdirname="/tmp",
+    *,
     deinterlace_mode=None,
     stabilize_mode=True,
     prefer_vertical=False,
@@ -301,7 +302,12 @@ def concat(
 
             if resize:
                 resize_and_resample(
-                    src_name, tfname, max_width, max_height, max_frame_rate_str, verbose
+                    src_name,
+                    tfname,
+                    max_width,
+                    max_height,
+                    frame_rate=max_frame_rate_str,
+                    verbose=verbose,
                 )
                 os.rename(tfname, fname)
                 src_name = fname
