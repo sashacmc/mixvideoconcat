@@ -289,8 +289,10 @@ def concat(
             logging.info("convert '%s' to '%s'", src_name, fname)
 
             if deinterlace_mode is None:
-                deinterlace_mode = finfo["interlaced"]
-            if deinterlace_mode:
+                _deinterlace = finfo["interlaced"]
+            else:
+                _deinterlace = deinterlace_mode
+            if _deinterlace:
                 deinterlace(src_name, tfname, verbose)
                 os.rename(tfname, fname)
                 src_name = fname
