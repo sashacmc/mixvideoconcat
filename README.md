@@ -7,6 +7,16 @@
 
 MixVideoConcat is a Python tool/library based on ffmpeg for concatenating video files of different formats, resolutions, and orientations into a single video file. It supports various input formats and ensures seamless merging of videos while handling differences in resolution and orientation.
 
+## Requirements
+
+MixVideoConcat requires **FFmpeg** (including `ffprobe`) to be installed and available on your system PATH.
+
+- **Linux:** `sudo apt install ffmpeg` (or your distro's package manager)
+- **macOS:** `brew install ffmpeg`
+- **Windows:** Download from [ffmpeg.org](https://ffmpeg.org/download.html) (e.g., the [gyan.dev](https://www.gyan.dev/ffmpeg/builds/) GPL build), extract it, and add the `bin` folder to your system PATH.
+
+Alternatively, you can point to a custom FFmpeg binary by setting the `FFMPEG_BINARY` environment variable.
+
 ## Installation
 
 You can install MixVideoConcat via pip:
