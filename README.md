@@ -1,6 +1,7 @@
 # MixVideoConcat
 
 ![CodeQL](https://github.com/sashacmc/mixvideoconcat/actions/workflows/codeql.yml/badge.svg)
+![Codespell](https://github.com/sashacmc/mixvideoconcat/actions/workflows/codespell.yml/badge.svg)
 [![PyPI - Version](https://img.shields.io/pypi/v/mixvideoconcat.svg)](https://pypi.org/project/mixvideoconcat)
 [![PyPI - Downloads](https://static.pepy.tech/badge/mixvideoconcat)](https://pepy.tech/project/mixvideoconcat)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.comixvideoconcatm/psf/black)
@@ -37,7 +38,7 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   -t TMPDIR, --tmpdir TMPDIR
-                        Directory for temprary files (they can be huge!)
+                        Directory for temporary files (they can be huge!)
   -l LOGFILE, --logfile LOGFILE
                         Log file
   -f, --force           Overwrite existing

@@ -63,7 +63,7 @@ def __args_parse():
     parser.add_argument(
         "-t",
         "--tmpdir",
-        help="Directory for temprary files (they can be huge!)",
+        help="Directory for temporary files (they can be huge!)",
     )
     parser.add_argument("-l", "--logfile", help="Log file", default=None)
     parser.add_argument("-f", "--force", help="Overwrite existing", action="store_true")

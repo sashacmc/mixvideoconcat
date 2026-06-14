@@ -1,5 +1,5 @@
 """
-Log utilites
+Log utilities
 """
 
 import os

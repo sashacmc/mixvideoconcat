@@ -17,7 +17,7 @@ FFMPEG_CODEC = os.getenv("FFMPEG_CODEC", "libx264")
 FFMPEG_CRF = os.getenv("FFMPEG_CRF", "23")  # use 18 for visually lossless file (ffmpeg default: 23)
 FFMPEG_FR = os.getenv("FFMPEG_FR", "25")
 
-# maximum alowed frame rate during autodetection
+# maximum allowed frame rate during autodetection
 MIXVIDEOCONCAT_MAX_FR = int(os.getenv("MIXVIDEOCONCAT_MAX_FR", "60"))
 
 

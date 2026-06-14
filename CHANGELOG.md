@@ -5,20 +5,20 @@
 - Add tests 
 - Fix interlace detection
 - Add type annotation
-- Minor improments
+- Minor improvements
 
 ## [1.3.0] - 2024-10-08
 
 - Add option to limit frame rate during autodetection
 - Improve ffmpeg version support
-- Add prefer verical video option
+- Add prefer vertical video option
 
 ## [1.2.0] - 2024-05-14 
 
 - Skip resize for uniform videos.
 - Add frame rate detection (convert to highest).
 - Add possibility to override FFMPEG constants by means of environment variables.
-- Switch to default CRF 23 (can be overrided by `FFMPEG_CRF` environment variable).
+- Switch to default CRF 23 (can be overridden by `FFMPEG_CRF` environment variable).
 
 ## [1.1.0] - 2024-04-28
 
