@@ -1,13 +1,15 @@
 """
 Unit tests for mixvideoconcat.concat module.
 """
+# pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=too-many-arguments,R0917
+# pylint: disable=unused-argument,consider-using-with,unspecified-encoding
+# pylint: disable=import-outside-toplevel,reimported,wrong-import-position
 
 import importlib
 import json
-import logging
 import os
 import subprocess as _subprocess
-import sys
 import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
@@ -15,8 +17,7 @@ from unittest.mock import MagicMock, patch
 # mixvideoconcat.__init__ re-exports `concat` as a function, shadowing the submodule
 # name. Import the module directly via importlib so patches resolve correctly.
 _concat_mod = importlib.import_module("mixvideoconcat.concat")
-
-from mixvideoconcat.concat import (  # noqa: E402  (after module pre-import above)
+from mixvideoconcat.concat import (
     apply_video_filters,
     concat,
     concat_uniform,
@@ -61,7 +62,10 @@ def _make_ffprobe_output(
 # get_video_info
 # ---------------------------------------------------------------------------
 class TestGetVideoInfo(unittest.TestCase):
+    """Tests for get_video_info function."""
+
     def _run_result(self, stdout=b"", returncode=0, stderr=b""):
+        """Create a mock subprocess result."""
         result = MagicMock()
         result.returncode = returncode
         result.stdout = stdout
@@ -71,7 +75,9 @@ class TestGetVideoInfo(unittest.TestCase):
     @patch.object(_subprocess, "run")
     def test_success_basic(self, mock_run):
         mock_run.return_value = self._run_result(
-            stdout=_make_ffprobe_output(width=1280, height=720, r_frame_rate="30/1", duration="10.5")
+            stdout=_make_ffprobe_output(
+                width=1280, height=720, r_frame_rate="30/1", duration="10.5"
+            )
         )
         info = get_video_info("video.mp4")
         self.assertEqual(info["width"], 1280)
@@ -214,11 +220,10 @@ class TestApplyVideoFilters(unittest.TestCase):
 
     @patch.object(_subprocess, "run")
     def test_verbose_false_pipes_stderr(self, mock_run):
-        import subprocess
         mock_run.return_value = self._ok_result()
         apply_video_filters("in.mp4", None, ["yadif"], verbose=False)
         kwargs = mock_run.call_args[1]
-        self.assertEqual(kwargs.get("stderr"), subprocess.PIPE)
+        self.assertEqual(kwargs.get("stderr"), _subprocess.PIPE)
 
     @patch.object(_subprocess, "run")
     def test_verbose_true_no_pipe(self, mock_run):
@@ -248,7 +253,6 @@ class TestDeinterlace(unittest.TestCase):
     @patch.object(_concat_mod, "apply_video_filters")
     def test_passes_verbose_flag(self, mock_avf):
         deinterlace("in.mp4", "out.mp4", verbose=True)
-        _, kwargs = mock_avf.call_args
         # verbose is the last positional arg
         call_args = mock_avf.call_args[0]
         self.assertEqual(call_args[-1], True)
@@ -341,7 +345,7 @@ class TestConcatUniform(unittest.TestCase):
 
         captured_list = {}
 
-        def fake_run(cmd, **kwargs):
+        def fake_run(cmd, **_):
             # Read the list file before ffmpeg would delete it
             listfile = [a for a in cmd if a.endswith("list.txt")]
             if listfile:
@@ -494,7 +498,8 @@ class TestConcat(unittest.TestCase):
     @patch.object(_concat_mod, "stabilize")
     @patch.object(_concat_mod, "deinterlace")
     @patch.object(_concat_mod, "get_video_info")
-    def test_deinterlace_auto_enabled_when_interlaced(self, mock_gvi, mock_di, mock_stab, mock_rs, mock_cu):
+    def test_deinterlace_auto_enabled_when_interlaced(
+            self, mock_gvi, mock_di, mock_stab, mock_rs, mock_cu):
         mock_gvi.return_value = self._info(name="v.mp4", interlaced=True)
         mock_di.side_effect = lambda src, dst, verbose: open(dst, "w").close()
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -506,7 +511,8 @@ class TestConcat(unittest.TestCase):
     @patch.object(_concat_mod, "stabilize")
     @patch.object(_concat_mod, "deinterlace")
     @patch.object(_concat_mod, "get_video_info")
-    def test_deinterlace_auto_skipped_when_progressive(self, mock_gvi, mock_di, mock_stab, mock_rs, mock_cu):
+    def test_deinterlace_auto_skipped_when_progressive(
+            self, mock_gvi, mock_di, mock_stab, mock_rs, mock_cu):
         mock_gvi.return_value = self._info(name="v.mp4", interlaced=False)
         with tempfile.TemporaryDirectory() as tmpdir:
             concat(["v.mp4"], "out.mp4", tmpdir, deinterlace_mode=None, stabilize_mode=False)

@@ -15,7 +15,10 @@ import argparse
 import tempfile
 import contextlib
 
-from .concat import concat, get_video_info, apply_video_filters, deinterlace, stabilize, resize_and_resample, concat_uniform
+from .concat import (
+    concat, get_video_info, apply_video_filters,
+    deinterlace, stabilize, resize_and_resample, concat_uniform
+)
 from .log import init_logger
 
 
