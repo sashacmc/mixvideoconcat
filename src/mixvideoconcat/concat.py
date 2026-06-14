@@ -1,4 +1,4 @@
-# pylint: disable=line-too-long,too-many-arguments,too-many-locals,eval-used
+# pylint: disable=line-too-long,too-many-arguments,too-many-locals
 """
 MixVideoConcat Module
 
@@ -9,6 +9,8 @@ import os
 import logging
 import subprocess
 import json
+from fractions import Fraction
+from typing import Dict, List, Optional, Tuple
 
 FFMPEG_BINARY = os.getenv("FFMPEG_BINARY", "ffmpeg")
 FFMPEG_CODEC = os.getenv("FFMPEG_CODEC", "libx264")
@@ -19,14 +21,14 @@ FFMPEG_FR = os.getenv("FFMPEG_FR", "25")
 MIXVIDEOCONCAT_MAX_FR = int(os.getenv("MIXVIDEOCONCAT_MAX_FR", "60"))
 
 
-def __unlink(filename):
+def __unlink(filename: str) -> None:
     try:
         os.unlink(filename)
     except FileNotFoundError:
-        logging.exception("unlink failed")
+        logging.warning("unlink failed: %s", filename)
 
 
-def get_video_info(filename):
+def get_video_info(filename: str) -> Dict:
     """
     Retrieve information about a video file.
     """
@@ -43,7 +45,7 @@ def get_video_info(filename):
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
     if result.returncode != 0:
         error_msg = result.stderr.decode("utf-8").strip()
-        raise SystemError(error_msg)
+        raise RuntimeError(error_msg)
 
     output = result.stdout.decode("utf-8")
     data = json.loads(output)
@@ -53,7 +55,7 @@ def get_video_info(filename):
         None,
     )
     if video_stream is None:
-        raise RuntimeWarning("File has no video steam")
+        raise RuntimeError("File has no video stream")
 
     info = {
         "width": int(video_stream.get("width", 0)),
@@ -67,7 +69,13 @@ def get_video_info(filename):
     return info
 
 
-def apply_video_filters(in_file, out_file, filters, add_params=None, verbose=False):
+def apply_video_filters(
+    in_file: str,
+    out_file: Optional[str],
+    filters: List[str],
+    add_params: Optional[List[str]] = None,
+    verbose: bool = False,
+) -> None:
     """
     Apply filters to a video file.
     """
@@ -91,10 +99,10 @@ def apply_video_filters(in_file, out_file, filters, add_params=None, verbose=Fal
     if result.returncode != 0:
         if not verbose:
             logging.error(result.stderr.decode("utf-8"))
-        raise SystemError(f"apply_video_filters failed: {result.returncode}")
+        raise RuntimeError(f"apply_video_filters failed: {result.returncode}")
 
 
-def deinterlace(in_file, out_file, verbose):
+def deinterlace(in_file: str, out_file: str, verbose: bool) -> None:
     """
     Deinterlace a video file.
     """
@@ -106,7 +114,7 @@ def deinterlace(in_file, out_file, verbose):
     apply_video_filters(in_file, out_file, filters, None, verbose)
 
 
-def stabilize(in_file, out_file, tmpdirname, verbose):
+def stabilize(in_file: str, out_file: str, tmpdirname: str, verbose: bool) -> None:
     """
     Stabilize a video file.
     """
@@ -127,7 +135,15 @@ def stabilize(in_file, out_file, tmpdirname, verbose):
         __unlink(trffile)
 
 
-def resize_and_resample(in_file, out_file, w, h, *, frame_rate, verbose):
+def resize_and_resample(
+    in_file: str,
+    out_file: str,
+    w: int,
+    h: int,
+    *,
+    frame_rate: str,
+    verbose: bool,
+) -> None:
     """
     Resize and resample a video file.
     """
@@ -143,7 +159,12 @@ def resize_and_resample(in_file, out_file, w, h, *, frame_rate, verbose):
     apply_video_filters(in_file, out_file, filters, add_params, verbose)
 
 
-def concat_uniform(filenames, out_file, tmpdirname, verbose):
+def concat_uniform(
+    filenames: List[str],
+    out_file: str,
+    tmpdirname: str,
+    verbose: bool,
+) -> None:
     """
     Concatenate video files with uniform properties into a single video file.
     """
@@ -185,7 +206,9 @@ def concat_uniform(filenames, out_file, tmpdirname, verbose):
         __unlink(listfile)
 
 
-def __get_info_and_size(filenames, prefer_vertical=False):
+def __get_info_and_size(
+    filenames: List[str], prefer_vertical: bool = False
+) -> Tuple[List[Dict], int, int, str]:
     max_vertical_height = 0
     max_vertical_width = 0
     max_horisontal_height = 0
@@ -207,7 +230,7 @@ def __get_info_and_size(filenames, prefer_vertical=False):
                 max_horisontal_height = h
                 max_horisontal_width = w
 
-        frame_rate = eval(info["frame_rate"])
+        frame_rate = float(Fraction(info["frame_rate"]))
         if max_frame_rate < frame_rate <= MIXVIDEOCONCAT_MAX_FR:
             max_frame_rate = frame_rate
             max_frame_rate_str = info["frame_rate"]
@@ -225,7 +248,7 @@ def __get_info_and_size(filenames, prefer_vertical=False):
     return fileinfos, max_width, max_height, max_frame_rate_str
 
 
-def __check_is_uniform(fileinfos):
+def __check_is_uniform(fileinfos: List[Dict]) -> bool:
     if len(fileinfos) == 0:
         return True
     finfo0 = fileinfos[0]
@@ -242,16 +265,16 @@ def __check_is_uniform(fileinfos):
 
 
 def concat(
-    filenames,
-    outputfile,
-    tmpdirname="/tmp",
+    filenames: List[str],
+    outputfile: str,
+    tmpdirname: str = "/tmp",
     *,
-    deinterlace_mode=None,
-    stabilize_mode=True,
-    prefer_vertical=False,
-    verbose=False,
-    dry_run=False,
-):
+    deinterlace_mode: Optional[bool] = None,
+    stabilize_mode: bool = True,
+    prefer_vertical: bool = False,
+    verbose: bool = False,
+    dry_run: bool = False,
+) -> List[Dict]:
     """
     Concatenate video files into a single video file.
 
