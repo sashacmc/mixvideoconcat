@@ -1,6 +1,6 @@
 # MixVideoConcat
 
-![CodeQL](https://github.com/sashacmc/mixvideoconcat/workflows/CodeQL/badge.svg)
+![CodeQL](https://github.com/sashacmc/mixvideoconcat/actions/workflows/codeql.yml/badge.svg)
 [![PyPI - Version](https://img.shields.io/pypi/v/mixvideoconcat.svg)](https://pypi.org/project/mixvideoconcat)
 [![PyPI - Downloads](https://static.pepy.tech/badge/mixvideoconcat)](https://pepy.tech/project/mixvideoconcat)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.comixvideoconcatm/psf/black)
