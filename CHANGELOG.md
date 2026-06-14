@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1] - 2026-06-14
+
+- Add tests 
+- Fix interlace detection
+- Add type annotation
+- Minor improments
+
 ## [1.3.0] - 2024-10-08
 
 - Add option to limit frame rate during autodetection
