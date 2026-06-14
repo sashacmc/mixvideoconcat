@@ -13,8 +13,9 @@ import sys
 import logging
 import argparse
 import tempfile
+import contextlib
 
-from .concat import *
+from .concat import concat, get_video_info, apply_video_filters, deinterlace, stabilize, resize_and_resample, concat_uniform
 from .log import init_logger
 
 
@@ -104,28 +105,20 @@ def main():
         sys.exit(1)
 
     if args.tmpdir is None:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            concat(
-                args.sources,
-                args.destination,
-                tmpdir,
-                deinterlace_mode=args.deinterlace,
-                stabilize_mode=args.stabilize,
-                prefer_vertical=args.prefer_vertical,
-                verbose=args.verbose,
-                dry_run=False,
-            )
+        ctx = tempfile.TemporaryDirectory()
     else:
         os.makedirs(args.tmpdir, exist_ok=True)
+        ctx = contextlib.nullcontext(args.tmpdir)
+
+    with ctx as tmpdir:
         concat(
             args.sources,
             args.destination,
-            args.tmpdir,
+            tmpdir,
             deinterlace_mode=args.deinterlace,
             stabilize_mode=args.stabilize,
             prefer_vertical=args.prefer_vertical,
             verbose=args.verbose,
-            dry_run=False,
         )
 
     logging.info("Done.")
