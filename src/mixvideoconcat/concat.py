@@ -57,13 +57,16 @@ def get_video_info(filename: str) -> Dict:
     if video_stream is None:
         raise RuntimeError("File has no video stream")
 
+    # Only known interlaced field orders count as interlaced; an absent/unknown
+    # field_order (common for progressive MP4/H.264) must NOT trigger deinterlacing.
+    field_order = video_stream.get("field_order", "progressive")
     info = {
         "width": int(video_stream.get("width", 0)),
         "height": int(video_stream.get("height", 0)),
-        "frame_rate": video_stream.get("r_frame_rate", 0),
+        "frame_rate": video_stream.get("r_frame_rate", "0"),
         "duration": float(data["format"]["duration"]),
         "orientation": int(video_stream.get("side_data_list", [{}])[0].get("rotation", 0)),
-        "interlaced": (video_stream.get("field_order", "unknown") != "progressive"),
+        "interlaced": field_order in ("tt", "bb", "tb", "bt"),
     }
     logging.info("%s: %s", filename, info)
     return info
@@ -239,7 +242,7 @@ def __get_info_and_size(
 
     max_height = max_horisontal_height
     max_width = max_horisontal_width
-    if prefer_vertical and max_vertical_height != 0 or max_horisontal_height == 0:
+    if (prefer_vertical and max_vertical_height != 0) or max_horisontal_height == 0:
         max_height = max_vertical_height
         max_width = max_vertical_width
 
